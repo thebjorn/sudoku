@@ -220,36 +220,6 @@ class RemoveSolvedDigitsAsOptions(Action):
         return bool(digits)
 
 
-def action_remove_solved_digits_as_options(board, prev=None, report=True):
-    prev = prev or []
-    digits = []
-    for cell in board.cells:
-        if not cell.has_digit():
-            continue
-
-        xy = (cell.row, cell.column)
-        digits.append(xy)
-
-        # print("CELL:", repr(cell), xy, "PREV:", xy in prev, prev)
-        if xy in prev:
-            continue
-
-        if report and xy not in prev:
-            print(f"found naked single in {repr(cell)}")
-
-        for c in board.cells:
-            if cell.can_see(c):
-                curval = repr(c)
-                if c.remove_possibility(cell.digit):
-                    if report:
-                        print(f"removed {cell.digit} from {curval}")
-    return digits
-
-
-def action_hidden_singles(board):
-    return False
-
-
 class FindNTuples(Action):
     def __init__(self, board):
         super().__init__(board)
@@ -277,23 +247,6 @@ class FindNTuples(Action):
                                 print(f"removed {', '.join(map(str, sorted(removed_vals)))} from {curval}")
             self.seen_tuples |= tuples
         return progress        
-
-def action_find_n_tuples(board):
-    progress = False
-    for area in board.areas():
-        for key, it in groupby(sorted(area, key=lambda cell: cell.possibilities_string()), lambda cell: cell.possibilities_string()):
-            cells = list(it)
-            ntuple = list(map(int, list(key)))
-            if len(cells) > 1 and len(key) == len(cells):
-                print(f"found {len(cells)}-tuple ({ntuple}) in {cells}")
-                for c in area:
-                    if c not in cells:
-                        curval = repr(c)
-                        removed_vals = c.remove_possibilities(ntuple)
-                        if removed_vals:
-                            progress = True
-                            print(f"removed {', '.join(map(str, sorted(removed_vals)))} from {curval}")
-    return progress
 
 
 def print_board(b, index):
