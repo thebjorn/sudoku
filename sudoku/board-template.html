@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        html { font: 16px Arial;}
+        table {border-collapse: collapse;}
+        table.outer {
+            border: 3px solid black;
+            padding: 0;
+            border-spacing: 0;
+        }
+
+        table.inner {
+            border: 1px solid black;
+            margin: 0
+        }
+
+        td {
+            border-collapse: collapse;
+            border: 1px solid black;
+            padding: 0;
+        }
+        table.options { margin: 1px; width:100%; height: 100% }
+        .options td { 
+            border: none; 
+            padding: 2px; 
+            font-size: 10px; 
+            color: rgb(126, 105, 105); 
+            width: 15px;
+        }
+
+        table.inner > tbody > tr > td {
+            height: 60px;
+            width: 60px;
+            text-align: center;
+        }
+        .inner small {color: gray;}
+        .digit { font-size: 32px; font-weight: bold; text-align: center;}
+        span.debug { 
+            font-size: 8px; font-weight: normal;
+            display: block; 
+
+        }
+    </style>
+</head>
+
+<body>
+    <table class="outer">
+
+        $SUDOKU_BOARD$
+
+    </table>
+</body>
+
+</html>
