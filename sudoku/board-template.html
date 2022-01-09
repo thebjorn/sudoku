@@ -3,8 +3,27 @@
 
 <head>
     <style>
-        html { font: 16px Arial;}
-        table {border-collapse: collapse;}
+        html {
+            font: 16px Arial;
+        }
+        html, body {height: 100%;}
+
+        .error { background-color: red; color: white;}
+        .hilite { background-color: #8ebfd9; }
+        #steps { border: 1px solid #999; margin-top: 1ex; }
+        .step-description {
+            font-size: 92%;
+            cursor: pointer;
+            padding: 4px;
+        }
+        .step-description small { margin-right: 1ex; }
+        .step-description + .step-description {
+            border-top: 1px solid #666;
+        }
+        table {
+            border-collapse: collapse;
+        }
+
         table.outer {
             border: 3px solid black;
             padding: 0;
@@ -21,36 +40,360 @@
             border: 1px solid black;
             padding: 0;
         }
-        table.options { margin: 1px; width:100%; height: 100% }
-        .options td { 
-            border: none; 
-            padding: 2px; 
-            font-size: 10px; 
-            color: rgb(126, 105, 105); 
+
+        table.options {
+            margin: 1px;
+            width: 100%;
+            height: 100%
+        }
+
+        .options td {
+            border: none;
+            padding: 2px;
+            font-size: 10px;
+            color: rgb(126, 105, 105);
             width: 15px;
         }
 
-        table.inner > tbody > tr > td {
+        table.inner>tbody>tr>td {
             height: 60px;
             width: 60px;
             text-align: center;
         }
-        .inner small {color: gray;}
-        .digit { font-size: 32px; font-weight: bold; text-align: center;}
-        span.debug { 
-            font-size: 8px; font-weight: normal;
-            display: block; 
 
+        .inner small {
+            color: gray;
+        }
+
+        .digit {
+            font-size: 32px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        span.debug {
+            font-size: 8px;
+            font-weight: normal;
+            display: block;
         }
     </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
 </head>
 
 <body>
+
+    <div style="float:right;height:calc(100vh - 22px - 8px - 10px);overflow-y:auto">
+        <button id="prev">prev</button>
+        <button id="next">next</button>
+
+        <div id="steps">
+
+        </div>
+    </div>
+
     <table class="outer">
+        <tr>
+            <td id=box1>
+                <table class="inner">
+                    <tr>
+                        <td id="cell-1" class="box-1 row-1 col-1"></td>
+                        <td id="cell-2" class="box-1 row-1 col-2"></td>
+                        <td id="cell-3" class="box-1 row-1 col-3"></td>
+                    </tr>
+                    <tr>
+                        <td id="cell-10" class="box-1 row-2 col-1"></td>
+                        <td id="cell-11" class="box-1 row-2 col-2"></td>
+                        <td id="cell-12" class="box-1 row-2 col-3"></td>
+                    </tr>
+                    <tr>
+                        <td id="cell-19" class="box-1 row-3 col-1"></td>
+                        <td id="cell-20" class="box-1 row-3 col-2"></td>
+                        <td id="cell-21" class="box-1 row-3 col-3"></td>
+                    </tr>
+                </table>
+            </td>
+            <td id=box2>
+                <table class="inner">
+                    <tr>
+                        <td id="cell-4" class="box-2 row-1 col-4"></td>
+                        <td id="cell-5" class="box-2 row-1 col-5"></td>
+                        <td id="cell-6" class="box-2 row-1 col-6"></td>
 
-        $SUDOKU_BOARD$
+                    </tr>
+                    <tr>
+                        <td id="cell-13" class="box-2 row-2 col-4"></td>
+                        <td id="cell-14" class="box-2 row-2 col-5"></td>
+                        <td id="cell-15" class="box-2 row-2 col-6"></td>
 
+                    </tr>
+                    <tr>
+                        <td id="cell-22" class="box-2 row-3 col-4"></td>
+                        <td id="cell-23" class="box-2 row-3 col-5"></td>
+                        <td id="cell-24" class="box-2 row-3 col-6"></td>
+
+                    </tr>
+                </table>
+            </td>
+            <td id=box3>
+                <table class="inner">
+                    <tr>
+                        <td id="cell-7" class="box-3 row-1 col-7"></td>
+                        <td id="cell-8" class="box-3 row-1 col-8"></td>
+                        <td id="cell-9" class="box-3 row-1 col-9"></td>
+                    </tr>
+                    <tr>
+                        <td id="cell-16" class="box-3 row-2 col-7"></td>
+                        <td id="cell-17" class="box-3 row-2 col-8"></td>
+                        <td id="cell-18" class="box-3 row-2 col-9"></td>
+                    </tr>
+                    <tr>
+                        <td id="cell-25" class="box-3 row-3 col-7"></td>
+                        <td id="cell-26" class="box-3 row-3 col-8"></td>
+                        <td id="cell-27" class="box-3 row-3 col-9"></td>
+
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td id=box4>
+                <table class="inner">
+                    <tr>
+                        <td id="cell-28" class="box-4 row-4 col-1"></td>
+                        <td id="cell-29" class="box-4 row-4 col-2"></td>
+                        <td id="cell-30" class="box-4 row-4 col-3"></td>
+                    </tr>
+                    <tr>
+                        <td id="cell-37" class="box-4 row-5 col-1"></td>
+                        <td id="cell-38" class="box-4 row-5 col-2"></td>
+                        <td id="cell-39" class="box-4 row-5 col-3"></td>
+                    </tr>
+                    <tr>
+                        <td id="cell-46" class="box-4 row-6 col-1"></td>
+                        <td id="cell-47" class="box-4 row-6 col-2"></td>
+                        <td id="cell-48" class="box-4 row-6 col-3"></td>
+                    </tr>
+                </table>
+            </td>
+            <td id=box5>
+                <table class="inner">
+                    <tr>
+                        <td id="cell-31" class="box-5 row-4 col-4"></td>
+                        <td id="cell-32" class="box-5 row-4 col-5"></td>
+                        <td id="cell-33" class="box-5 row-4 col-6"></td>
+
+                    </tr>
+                    <tr>
+                        <td id="cell-40" class="box-5 row-5 col-4"></td>
+                        <td id="cell-41" class="box-5 row-5 col-5"></td>
+                        <td id="cell-42" class="box-5 row-5 col-6"></td>
+
+                    </tr>
+                    <tr>
+                        <td id="cell-49" class="box-5 row-6 col-4"></td>
+                        <td id="cell-50" class="box-5 row-6 col-5"></td>
+                        <td id="cell-51" class="box-5 row-6 col-6"></td>
+
+                    </tr>
+                </table>
+            </td>
+            <td id=box6>
+                <table class="inner">
+                    <tr>
+                        <td id="cell-34" class="box-6 row-4 col-7"></td>
+                        <td id="cell-35" class="box-6 row-4 col-8"></td>
+                        <td id="cell-36" class="box-6 row-4 col-9"></td>
+                    </tr>
+                    <tr>
+                        <td id="cell-43" class="box-6 row-5 col-7"></td>
+                        <td id="cell-44" class="box-6 row-5 col-8"></td>
+                        <td id="cell-45" class="box-6 row-5 col-9"></td>
+                    </tr>
+                    <tr>
+                        <td id="cell-52" class="box-6 row-6 col-7"></td>
+                        <td id="cell-53" class="box-6 row-6 col-8"></td>
+                        <td id="cell-54" class="box-6 row-6 col-9"></td>
+
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td id=box7>
+                <table class="inner">
+                    <tr>
+                        <td id="cell-55" class="box-7 row-7 col-1"></td>
+                        <td id="cell-56" class="box-7 row-7 col-2"></td>
+                        <td id="cell-57" class="box-7 row-7 col-3"></td>
+                    </tr>
+                    <tr>
+                        <td id="cell-64" class="box-7 row-8 col-1"></td>
+                        <td id="cell-65" class="box-7 row-8 col-2"></td>
+                        <td id="cell-66" class="box-7 row-8 col-3"></td>
+                    </tr>
+                    <tr>
+                        <td id="cell-73" class="box-7 row-9 col-1"></td>
+                        <td id="cell-74" class="box-7 row-9 col-2"></td>
+                        <td id="cell-75" class="box-7 row-9 col-3"></td>
+                    </tr>
+                </table>
+            </td>
+            <td id=box8>
+                <table class="inner">
+                    <tr>
+                        <td id="cell-58" class="box-8 row-7 col-4"></td>
+                        <td id="cell-59" class="box-8 row-7 col-5"></td>
+                        <td id="cell-60" class="box-8 row-7 col-6"></td>
+                    </tr>
+                    <tr>
+                        <td id="cell-67" class="box-8 row-8 col-4"></td>
+                        <td id="cell-68" class="box-8 row-8 col-5"></td>
+                        <td id="cell-69" class="box-8 row-8 col-6"></td>
+                    </tr>
+                    <tr>
+                        <td id="cell-76" class="box-8 row-9 col-4"></td>
+                        <td id="cell-77" class="box-8 row-9 col-5"></td>
+                        <td id="cell-78" class="box-8 row-9 col-6"></td>
+                    </tr>
+                </table>
+            </td>
+            <td id=box9>
+                <table class="inner">
+                    <tr>
+                        <td id="cell-61" class="box-9 row-7 col-7"></td>
+                        <td id="cell-62" class="box-9 row-7 col-8"></td>
+                        <td id="cell-63" class="box-9 row-7 col-9"></td>
+                    </tr>
+                    <tr>
+                        <td id="cell-70" class="box-9 row-8 col-7"></td>
+                        <td id="cell-71" class="box-9 row-8 col-8"></td>
+                        <td id="cell-72" class="box-9 row-8 col-9"></td>
+                    </tr>
+                    <tr>
+                        <td id="cell-79" class="box-9 row-9 col-7"></td>
+                        <td id="cell-80" class="box-9 row-9 col-8"></td>
+                        <td id="cell-81" class="box-9 row-9 col-9"></td>
+                    </tr>
+                </table>
+            </td>
+
+        </tr>
     </table>
-</body>
 
+    <script>
+
+        class Board {
+            constructor(steps) {
+                this.steps = steps;
+                this.stepnum = 0;
+            }
+
+            get descriptions() { return this.steps.map(s => s[0]); }
+
+            get step() { return this.steps[this.stepnum][1]; }
+
+            next() {
+                if (this.stepnum + 1 >= this.steps.length) return this.stepnum;
+                this.stepnum++;
+                this.clear();
+                this.show();
+                return this.stepnum;
+            }
+
+            prev() {
+                if (this.stepnum - 1 < 0) return this.stepnum;
+                this.stepnum--;
+                this.clear();
+                this.show();
+                return this.stepnum;
+            }
+
+            goto_step(n) {
+                if (n < 0 || n >= this.steps.length) return this.stepnum;
+                this.stepnum = n;
+                this.clear();
+                this.show();
+                return n;
+            }
+
+            display_cell(cell, val) {
+                if (typeof val === "number") {
+                    cell
+                        .addClass('digit')
+                        .text(val);
+                } else {
+                    if (val.length === 0) {
+                        cell.addClass('error');
+                    } else {
+                        cell.addClass('possibilities');
+                        const opt_table = $('<table/>').addClass('options');
+                        for (let y=0; y<3; y++) {
+                            const tr = $('<tr/>');
+                            for (let n=y*3; n<(y+1)*3; n++) {
+                                if (val.includes(n+1)) {
+                                    tr.append(`<td>${n+1}</td>`);
+                                } else {
+                                    tr.append(`<td>&nbsp;</td>`);
+                                }
+                            }
+                            opt_table.append(tr);
+                        }
+                        cell.append(opt_table);
+                    }
+                }
+            }
+
+            show() {
+                this.step.forEach((val, i) => this.display_cell($(`#cell-${i + 1}`), val));
+            }
+
+            clear() {
+                for (let i=1; i<=81; i++) {
+                    $(`#cell-${i}`)
+                        .html('')
+                        .removeClass('digit error possibilities');
+                }
+            }
+        }
+        // const b = new Board(bdata);
+        // const b = new Board([step6, step7, step8]);
+        const b = new Board($STEPS$);
+        b.show();
+
+
+        b.descriptions.forEach((txt, i) => {
+            $('#steps').append(`
+                <div id="step-description-${i}" class="step-description" step="${i}">
+                    <small>step ${i+1}</small>${txt}
+                </div>
+            `);
+        });
+
+        // $(document).on('ready', function () {
+
+            $('#step-description-0').addClass('hilite');
+
+            $('#next').on('click', function () {
+                $('.step-description').removeClass('hilite');
+                const curstep = b.next();
+                $(`#step-description-${curstep}`).addClass('hilite');
+            });
+            $('#prev').on('click', function () {
+                $('.step-description').removeClass('hilite');
+                const curstep = b.prev();
+                $(`#step-description-${curstep}`).addClass('hilite');
+            });
+            $('.step-description').on('click', function () {
+                console.log('step');
+                $('.step-description').removeClass('hilite');
+                const curstep = parseInt($(this).attr('step'));
+                console.log('curstep', curstep);
+                b.goto_step(curstep);
+                $(this).addClass('hilite');
+            });
+        // });
+
+    </script>
+</body>
 </html>
