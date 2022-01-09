@@ -1,39 +1,56 @@
 import os
 from collections import defaultdict
 from itertools import groupby
+from board_data import BoardData
+
 
 DIRNAME = os.path.dirname(__file__)
 
 
 class Cell(object):
+    """Each cell is indexed from 0..80 to make it easy to figure out which
+       row, column, and box it belongs to.
+
+       See the Board class for how this is used.
+    """
     def __init__(self, data=None, index=0):
+        # set possibilities to [1,2,3,4,5,6,7,8,9] or data
+        # data must be a list if it is given
         self.possibilities = data if data is not None else list(range(1, 10))
         self.row = index // 9
         self.column = index % 9
         self.box = 3*(index // (9*3)) + (index % 9 // 3)
+        # set the value (digit) of this cell to 0 (unknown) unless we 
+        # only have one possibility
         self.digit = self.possibilities[0] if len(self.possibilities) == 1 else 0
 
     def set_value(self, n):
+        """Set the value (digit) of this cell.
+        """
         self.digit = n
         self.possibilities = [n]
 
     def xy(self):
+        """Convenience method to return the row/column of the cell as a tuple.
+        """
+        # this is used in Board.cells_with_digits        
         return (self.row, self.column)
 
     def has_digit(self):
+        """Does this cell have a digit?"""        
         return self.digit != 0
-        # return len(self.possibilities) == 1
 
     def can_see(self, other):
+        """Can this cell see the other cell?
+        """
         if self is other:
             return False
         return self.row == other.row or self.column == other.column or self.box == other.box
 
-    # @property
-    # def digit(self):
-    #     return self.possibilities[0] if self.has_digit() else 0
-
     def remove_possibility(self, n):
+        """Returns True if ``n`` can be removed from the possibilities in 
+           this cell.
+        """
         if self.has_digit():
             return False
         if n in self.possibilities:
@@ -44,14 +61,16 @@ class Cell(object):
         return False
 
     def remove_possibilities(self, lst):
+        """Returns a set of digits (from lst) that were removed from this cell.
+        """
         res = set()
         for val in lst:
             if self.remove_possibility(val):
                 res.add(val)
         return res
 
-    def __len__(self):
-        return len(self.possibilities)
+    # def __len__(self):
+    #     return len(self.possibilities)
 
     def possibilities_string(self):
         return ''.join(sorted(set(map(str, self.possibilities))))
@@ -97,39 +116,14 @@ class Cell(object):
         return f'r{self.row+1}c{self.column+1}={"".join(map(str,self.possibilities))}'
 
 
-class BoardData(object):
-    def __init__(self, data='0' * 9 * 9):
-        self.data = data.replace('.', '0')
-
-    def __getitem__(self, key):
-        return int(self.data[key])
-
-    def possibilites(self, n):
-        v = self[n]
-        if v == 0:
-            return list(range(1, 10))
-        return [v]
-
-    def __repr__(self):
-        rows = []
-        for i in range(9):
-            rows.append(' '.join(self.data[i*9: (i+1)*9]))
-        return '\n'.join(rows)
-
-
-class Area(object):
-    def __init__(self, cells):
-        self.cells = cells
-
-
 class Board(object):
     def __init__(self, board_data=None):
         #: all cells in row-major order r1c1, r1c2, ..., r1c9, r2c1, r2c2, etc.
-        # self.cells = [Cell([(i%9)+1]) for i in range(9*9)]
-        if board_data is not None:
-            self.cells = [Cell(board_data.possibilites(i), index=i) for i in range(9*9)]
-        else:
-            self.cells = [Cell(index=i) for i in range(9*9)]
+        # send the index of the cell to Cell(...) so it can figure out 
+        # which row/column/box it belongs to.
+        self.cells = [Cell(board_data.possibilites(i), index=i) for i in range(9*9)]
+
+        # define the areas of the grid: rows, columns and boxes...
 
         #: 9 boxes with 9 cells in each
         self.boxes = [[] for i in range(9)]
@@ -140,28 +134,40 @@ class Board(object):
         #: 9 rows with 9 cells in each
         self.rows = [[] for i in range(9)]
 
+        # the cells know which row/column/box they belong to, so just append
         for cell in self.cells:
             self.boxes[cell.box].append(cell)
             self.cols[cell.column].append(cell)
             self.rows[cell.row].append(cell)
 
-        self.cells_with_digits = set()
-        self.cleanup()
+        self.cells_with_digits = set()  # cells that contain digits
+        self.cleanup()                  # cleanup fills cells_with_digits
 
     def areas(self):
+        """Returns a list containing all boxes, columns and rows.
+           (a list of 9+9+9=27 lists, each containing 9 cells, a cell is shared
+           between 3 of the sub-lists)
+        """
         return self.boxes + self.cols + self.rows
 
     def solved(self):
+        """Returns True iff the grid is solved.
+        """
         for area in self.areas():
+            # all the cells in an area (box/column/row) must have a digit
             if not all(c.has_digit() for c in area):
                 # print("NOT_SOLVED(has-digit):", [repr(c) for c in area])
                 return False
+            # every area (box/column/row) must contain the digits 1..9
             if {c.digit for c in area} != set(range(1, 10)):
                 # print("NOT_SOLVED(1-9):", [repr(c) for c in area])
                 return False
         return True
 
     def cleanup_cell(self, cell, report=False):
+        """Remove the digit in ``cell`` from the possibilities of all the other
+           cells that it can see.
+        """        
         assert cell.has_digit()
         self.cells_with_digits.add(cell.xy())
         for c in self.cells:
@@ -174,6 +180,9 @@ class Board(object):
                         print(f"removed {cell.digit} from {curval}")
 
     def cleanup(self):
+        """For all cells that have digits, remove the digit from all other 
+           cells that it can see (i.e. same box, row, or column).
+        """
         for cell in self.cells:
             if not cell.has_digit() or cell.xy() in self.cells_with_digits:
                 continue
@@ -212,6 +221,12 @@ class Board(object):
 
         with open(os.path.join(DIRNAME, 'board-template.html')) as fp:
             return fp.read().replace('$SUDOKU_BOARD$', html_board)
+
+    def show_board(b, tag):
+        fname = f'tmp-{tag}.html'
+        with open(fname, 'w') as fp:
+            print(b.as_html(), file=fp)
+        os.startfile(fname)
 
 
 class Action(object):
@@ -302,16 +317,12 @@ class FindNakedTuples(Action):
         return progress        
 
 
-def print_board(b, index):
-    fname = f'tmp-{index}.html'
-    with open(fname, 'w') as fp:
-        print(b.as_html(), file=fp)
-    os.startfile(fname)
+
 
 
 def solve(b, step_limit=100):
     actions = [NakedSingles(b), FindNakedTuples(b), HiddenSingles(b)]
-    print_board(b, 'initial')
+    b.show_board('initial')
     i = 0
     while 1:
         i += 1
@@ -325,16 +336,16 @@ def solve(b, step_limit=100):
             progress = progress or action_progress
             b.cleanup()
             if action_progress:
-                print_board(b, f'{i}-{action.__class__.__name__}')
+                b.show_board(f'{i}-{action.__class__.__name__}')
                 break
         if b.solved():
             print("SOLVED :-)")
-            print_board(b, 'SOLVED')
+            b.show_board('SOLVED')
             return b
         if not progress:
             print("NO_PROGRESS")
             break
-    print_board(b, 'no-solution')
+    b.show_board('no-solution')
     return b
 
 if __name__ == "__main__":
