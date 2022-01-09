@@ -264,7 +264,7 @@ class HiddenSingles(Action):
                     progress = True
                     cell.set_value(n)
                     print(f"found hidden single ({n}) in {repr(cell)}")
-                    self.board.cleanup_cell(cell)
+                    self.board.cleanup_cell(cell, report=True)
                     return True
         return progress
 
@@ -324,6 +324,7 @@ def solve(b, step_limit=100):
             b.cleanup()
             if action_progress:
                 print_board(b, f'{i}-{action.__class__.__name__}')
+                break
         if b.solved():
             print("SOLVED :-)")
             print_board(b, 'SOLVED')
