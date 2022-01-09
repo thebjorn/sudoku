@@ -11,24 +11,27 @@ class Cell(object):
         self.row = index // 9
         self.column = index % 9
         self.box = 3*(index // (9*3)) + (index % 9 // 3)
+        self.digit = self.possibilities[0] if len(self.possibilities) == 1 else 0
 
     def set_value(self, n):
+        self.digit = n
         self.possibilities = [n]
 
     def xy(self):
         return (self.row, self.column)
 
     def has_digit(self):
-        return len(self.possibilities) == 1
+        return self.digit != 0
+        # return len(self.possibilities) == 1
 
     def can_see(self, other):
         if self is other:
             return False
         return self.row == other.row or self.column == other.column or self.box == other.box
 
-    @property
-    def digit(self):
-        return self.possibilities[0] if self.has_digit() else 0
+    # @property
+    # def digit(self):
+    #     return self.possibilities[0] if self.has_digit() else 0
 
     def remove_possibility(self, n):
         if self.has_digit():
@@ -36,7 +39,7 @@ class Cell(object):
         if n in self.possibilities:
             self.possibilities.remove(n)
             if self.has_digit():
-                print(f"found naked single {self.digit} in ({repr(self)})")
+                print(f"XXX found naked single {self.digit} in ({repr(self)})")
             return True
         return False
 
@@ -63,8 +66,8 @@ class Cell(object):
         dbgstr = ''
         if n == 0:
             return '<td class="error"></td>'
-        elif n == 1:
-            return f'<td class="digit">{self.possibilities[0]}{dbgstr}</td>'
+        elif n == 1 and self.has_digit():
+            return f'<td class="digit">{self.digit}{dbgstr}</td>'
         else:
             def box2html(bx):
                 res = ['<table class="options">']
@@ -231,12 +234,12 @@ class NakedSingles(Action):
     def run(self, print=print):
         progress = False
         for cell in self.board.cells:
-            if not cell.has_digit() or cell.xy() in self.board.cells_with_digits:
-                continue
-            progress = True
-            print(f"found naked single in {repr(cell)}")
-            self.board.cleanup_cell(cell, report=True)
-            return True
+            if not cell.has_digit() and len(cell.possibilities) == 1:
+                cell.set_value(cell.possibilities[0])
+                progress = True
+                print(f"found naked single in {repr(cell)}")
+                self.board.cleanup_cell(cell, report=True)
+                return True
         return progress
 
 
@@ -304,21 +307,22 @@ def print_board(b, index):
     os.startfile(fname)
 
 
-def solve(b):
-    actions = [NakedSingles(b), HiddenSingles(b), FindNakedTuples(b)]
+def solve(b, step_limit=100):
+    actions = [NakedSingles(b), FindNakedTuples(b), HiddenSingles(b)]
     print_board(b, 'initial')
     i = 0
     while 1:
         i += 1
         print(f'step {i}------------------------')
-        if i > 35:
-            print("i>5")
+        if i > step_limit:
+            print(f"i>{step_limit}")
             break
         progress = False
         for action in actions:
-            progress = progress or action.run()
+            action_progress = action.run()
+            progress = progress or action_progress
             b.cleanup()
-            if progress:
+            if action_progress:
                 print_board(b, f'{i}-{action.__class__.__name__}')
         if b.solved():
             print("SOLVED :-)")
