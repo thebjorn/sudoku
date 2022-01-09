@@ -12,6 +12,9 @@ class Cell(object):
         self.column = index % 9
         self.box = 3*(index // (9*3)) + (index % 9 // 3)
 
+    def set_value(self, n):
+        self.possibilities = [n]
+
     def xy(self):
         return (self.row, self.column)
 
@@ -32,6 +35,8 @@ class Cell(object):
             return False
         if n in self.possibilities:
             self.possibilities.remove(n)
+            if self.has_digit():
+                print(f"found naked single {self.digit} in ({repr(self)})")
             return True
         return False
 
@@ -137,16 +142,39 @@ class Board(object):
             self.cols[cell.column].append(cell)
             self.rows[cell.row].append(cell)
 
+        self.cells_with_digits = set()
+        self.cleanup()
+
     def areas(self):
         return self.boxes + self.cols + self.rows
 
     def solved(self):
         for area in self.areas():
             if not all(c.has_digit() for c in area):
+                # print("NOT_SOLVED(has-digit):", [repr(c) for c in area])
                 return False
             if {c.digit for c in area} != set(range(1, 10)):
+                # print("NOT_SOLVED(1-9):", [repr(c) for c in area])
                 return False
         return True
+
+    def cleanup_cell(self, cell, report=False):
+        assert cell.has_digit()
+        self.cells_with_digits.add(cell.xy())
+        for c in self.cells:
+            if c.has_digit():
+                continue
+            if cell.can_see(c):
+                curval = repr(c)
+                if c.remove_possibility(cell.digit):
+                    if report:
+                        print(f"removed {cell.digit} from {curval}")
+
+    def cleanup(self):
+        for cell in self.cells:
+            if not cell.has_digit() or cell.xy() in self.cells_with_digits:
+                continue
+            self.cleanup_cell(cell)
 
     def digits(self):
         return [c for c in self.cells if c.has_digit()]
@@ -195,32 +223,48 @@ def noop(*args, **kwargs):
     pass
 
 
-class RemoveSolvedDigitsAsOptions(Action):
-    def __init__(self, board, print=noop):
+class NakedSingles(Action):
+    def __init__(self, board):
         super().__init__(board)
         self.seen_digits = set()
-        self.print = print
 
-    def run(self):
-        digits = set()
+    def run(self, print=print):
+        progress = False
         for cell in self.board.cells:
-            if not cell.has_digit() or cell.xy() in self.seen_digits:
+            if not cell.has_digit() or cell.xy() in self.board.cells_with_digits:
                 continue
-
-            digits.add(cell.xy())
-
-            self.print(f"found naked single in {repr(cell)}")
-
-            for c in self.board.cells:
-                if cell.can_see(c):
-                    curval = repr(c)
-                    if c.remove_possibility(cell.digit):
-                        self.print(f"removed {cell.digit} from {curval}")
-        self.seen_digits |= digits
-        return bool(digits)
+            progress = True
+            print(f"found naked single in {repr(cell)}")
+            self.board.cleanup_cell(cell, report=True)
+        return progress
 
 
-class FindNTuples(Action):
+class HiddenSingles(Action):
+    def run(self):
+        progress = False
+        for area in self.board.areas():
+            digits = defaultdict(set)
+            known_digits = set()
+            for i, cell in enumerate(area):
+                if cell.has_digit():
+                    known_digits.add(cell.digit)
+                    continue
+                for n in cell.possibilities:
+                    digits[n].add(i)
+            for n, cells in digits.items():
+                if n in known_digits:
+                    continue
+                if len(cells) == 1:
+                    i, = cells
+                    cell = area[i]
+                    progress = True
+                    cell.set_value(n)
+                    print(f"found hidden single ({n}) in {repr(cell)}")
+                    self.board.cleanup_cell(cell)
+        return progress
+
+
+class FindNakedTuples(Action):
     def __init__(self, board):
         super().__init__(board)
         self.seen_tuples = set()
@@ -237,7 +281,7 @@ class FindNTuples(Action):
                     continue
                 tuples.add(tmp)
                 if len(cells) > 1 and len(key) == len(cells):
-                    print(f"found {len(cells)}-tuple ({key}) in {cells}")
+                    print(f"found naked {len(cells)}-tuple ({key}) in {cells}")
                     for c in area:
                         if c not in cells:
                             curval = repr(c)
@@ -257,28 +301,28 @@ def print_board(b, index):
 
 
 def solve(b):
-    actions = [FindNTuples(b)]
-    cleanup = RemoveSolvedDigitsAsOptions(b)
-    progress = False
-    cleanup.run()
-    cleanup.print = print
+    actions = [NakedSingles(b), HiddenSingles(b), FindNakedTuples(b)]
     print_board(b, 'initial')
     i = 0
     while 1:
         i += 1
-        if i > 5:
+        print(f'step {i}------------------------')
+        if i > 35:
+            print("i>5")
             break
+        progress = False
         for action in actions:
-            print()
-            progress = action.run()
-            if not progress:
-                print_board(b, 'no-progress')
-                return b
-            print()
-            cleanup.run()
-            print()
-            print_board(b, f'{action.__class__.__name__}-{i}')
-
+            progress = progress or action.run()
+            b.cleanup()
+            if progress:
+                print_board(b, f'{i}-{action.__class__.__name__}')
+        if b.solved():
+            print("SOLVED :-)")
+            print_board(b, 'SOLVED')
+            return b
+        if not progress:
+            print("NO_PROGRESS")
+            break
     print_board(b, 'no-solution')
     return b
 
@@ -297,7 +341,3 @@ if __name__ == "__main__":
 
     b = Board(dtfeb19)
     b = solve(b)
-    if b.solved():
-        print("SOLVED :-)")
-    else:
-        print("NOT-SOLVED :-(")
