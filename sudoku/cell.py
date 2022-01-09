@@ -78,38 +78,8 @@ class Cell(object):
         else:
             return self.possibilities[:]  # return a copy
 
-    # def as_html(self):
-    #     n = len(self.possibilities)
-    #     # dbgstr = f'<span class="debug">{repr(self)}</span>'
-    #     dbgstr = ''
-    #     if n == 0:
-    #         return '<td class="error"></td>'
-    #     elif n == 1 and self.has_digit():
-    #         return f'<td class="digit">{self.digit}{dbgstr}</td>'
-    #     else:
-    #         def box2html(bx):
-    #             res = ['<table class="options">']
-    #             for y in range(3):
-    #                 res.append('<tr>')
-    #                 for n in range(y*3, (y+1)*3):
-    #                     if n+1 in self.possibilities:
-    #                         res.append(f'<td>{n+1}</td>')
-    #                     else:
-    #                         res.append('<td>&nbsp;</td>')
-    #                 res.append('</tr>')
-    #             res.append('</table>')
-    #             return '\n'.join(res)
-
-
-    #         return f'''
-    #             <td class="possibilities">
-    #                 {box2html(self.possibilities)}
-    #                 {dbgstr}
-    #             </td>
-    #         '''
-
     def __str__(self):
-        return str(self.digit)
+        return f'r{self.row+1}c{self.column+1}'
 
     def __repr__(self):
         return f'r{self.row+1}c{self.column+1}={"".join(map(str,self.possibilities))}'

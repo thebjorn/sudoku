@@ -93,38 +93,6 @@ class Board(object):
         x, y = pos
         return self.cells[y*9 + x]
 
-    # def as_html(self):
-    #     def box2html(bx):
-    #         res = ['<table class="inner">']
-    #         for y in range(3):
-    #             res.append('<tr>')
-    #             for cell in bx[y*3: (y+1)*3]:
-    #                 res.append(cell.as_html())
-    #             res.append('</tr>')
-    #         res.append('</table>')
-    #         return '\n'.join(res)
-
-    #     res = []
-    #     for y in range(3):
-    #         res.append('<tr>')
-    #         for bx in self.boxes[y*3: (y+1)*3]:
-    #             res.append('<td>')
-    #             res.append(box2html(bx))
-    #             res.append('</td>')
-    #         res.append('</tr>')
-    #     html_board = '\n'.join(res)
-
-    #     with open(os.path.join(DIRNAME, 'board-template.html')) as fp:
-    #         return fp.read().replace('$SUDOKU_BOARD$', html_board)
-
-    # def show_board(self, tag):
-    #     print(self.__json__())
-    #     return
-    #     fname = f'tmp-{tag}.html'
-    #     with open(fname, 'w') as fp:
-    #         print(self.as_html(), file=fp)
-    #     os.startfile(fname)
-
 
 if __name__ == "__main__":
     from solver import solve
@@ -140,7 +108,32 @@ if __name__ == "__main__":
         '..98...36'
         '...3.6.9.')
 
-    b = Board(dtfeb19)
+    wildcatjan17 = BoardData(
+        '...26.7.1'
+        '68..7..9.'
+        '19...45..'
+        '82.1...4.'
+        '..46.29..'
+        '.5...3.28'
+        '..93...74'
+        '.4..5..36'
+        '7.3.18...'
+    )
+    challenge1 = BoardData(
+        '.2.......'
+        '...6....3'
+        '.74.8....'
+        '.....3..2'
+        '.8..4..1.'
+        '6..5.....'
+        '....1.78.'
+        '5....9...'
+        '.......4.'
+    )
+
+    # b = Board(dtfeb19)
+    # b = Board(wildcatjan17)
+    b = Board(challenge1)
     steps = solve(b)
     steps.show('dtfeb19.html')
     print('done')
