@@ -286,16 +286,18 @@ class FindNakedTuples(Action):
                     continue
                 tuples.add(tmp)
                 if len(cells) > 1 and len(key) == len(cells):
-                    print(f"found naked {len(cells)}-tuple ({key}) in {cells}")
+                    output = [f"found naked {len(cells)}-tuple ({key}) in {cells}"]
                     for c in area:
                         if c not in cells:
                             curval = repr(c)
                             removed_vals = c.remove_possibilities(ntuple)
                             if removed_vals:
                                 progress = True
-                                print(f"removed {', '.join(map(str, sorted(removed_vals)))} from {curval}")
+                                output.append(f"removed {', '.join(map(str, sorted(removed_vals)))} from {curval}")
                     self.seen_tuples.add(tmp)
-                    return True
+                    if progress:
+                        print('\n'.join(output))
+                        return True
             self.seen_tuples |= tuples
         return progress        
 
