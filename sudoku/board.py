@@ -236,6 +236,7 @@ class NakedSingles(Action):
             progress = True
             print(f"found naked single in {repr(cell)}")
             self.board.cleanup_cell(cell, report=True)
+            return True
         return progress
 
 
@@ -261,6 +262,7 @@ class HiddenSingles(Action):
                     cell.set_value(n)
                     print(f"found hidden single ({n}) in {repr(cell)}")
                     self.board.cleanup_cell(cell)
+                    return True
         return progress
 
 
@@ -289,6 +291,8 @@ class FindNakedTuples(Action):
                             if removed_vals:
                                 progress = True
                                 print(f"removed {', '.join(map(str, sorted(removed_vals)))} from {curval}")
+                    self.seen_tuples.add(tmp)
+                    return True
             self.seen_tuples |= tuples
         return progress        
 
